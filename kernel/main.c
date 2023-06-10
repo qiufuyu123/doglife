@@ -3,7 +3,7 @@
 #include <mem/mmu.h>
 #include <pboot.h>
 
-#include "klog.h"
+#include"klog.h"
 #include "qfb.h"
 
 pboot_config_t conf;
