@@ -1,8 +1,11 @@
-#include <fb/fb.h>
-#include <string.h>
+#include <assert.h>
+#include "klog.h"
+#include "qfb.h"
+#include <font.inc>
+#include <stdbool.h>
 #include <stdint.h>
-#include <pboot.h>
-#include <fb/font.inc>
+#include <string.h>
+kconsole_t *qui_logger = 0;
 int color_16[16]={
     0x000000,
     0x0000AA,
@@ -37,31 +40,30 @@ int color_16[16]={
 #define CHAR_W 8
 #define CHAR_H 16
 #define USE_fb
-uint32_t cur_x,cur_y;
+static uint32_t cur_x,cur_y;
 //uint32_t max_text_x,max_text_y;
-uint32_t fb_width,fb_height;
-uint32_t* fb_buffer;
-uint32_t* fb_double_buff;
-char is_doubled=0;
-char buffer_state=0;
-int vbg=0x00000000,vfg=0x00ffffff;
-extern pboot_config_t conf;
+static uint32_t fb_width,fb_height;
+static uint32_t* fb_buffer;
+static uint32_t* fb_double_buff;
+static bool is_big_endian = true;
+//char is_doubled=0;
+//char buffer_state=0;
+static uint32_t vbg=0x00000000,vfg=0xffffffff;
 void fb_put_pixel(uint32_t x,uint32_t y,uint32_t color)
 {
     if (fb_width <= x ||  fb_height <= y)
         return;
     fb_buffer[ fb_width * y + x] = color;
 }
+uint32_t color_compose(uint8_t r,uint8_t g,uint8_t b) {
+    return ((((uint32_t)0) & 0xff) << 24) | ((((uint32_t)r) & 0xff) << 16) | ((((uint32_t)g) & 0xff) << 8)  | ((((uint32_t)b) & 0xff) << 0); // works on ARGB8,8,8,8 only, i'll add ARGB5,9,9,9 eventually
+}
 void fb_draw_pic(char *bits,int w,int h, int xx,int yy)
 {
     for (int y = 0; y<h; y++) {
-        for (int x=0;x<w/8; x++) {
-            for (int c=0;c<8;c++) {
-                if(bits[y*(w/8)+x] & (0x80>>c))
-                    fb_buffer[(yy+y)*(fb_width)+x*8+c] = vfg;
-                else
-                    fb_buffer[(yy+y)*(fb_width)+x*8+c] = vbg;
-            }
+        for (int x=0;x<w; x++) {
+            int g = bits[y*w+x];
+            fb_buffer[(yy+y)*fb_width+x] = color_compose(g, g, g);
         }
     }
 }
@@ -218,7 +220,7 @@ void fb_setcurse(int x,int y)
 kconsole_t fb_console={
     .cls=&fb_cls,
     .id=1,
-    .init=&init_fb,
+    .init=0,
     .pause=0,
     .putchr=&fb_gen_puchar,
     //.flush=fb_flush_buffer,
@@ -228,12 +230,12 @@ kconsole_t fb_console={
     .update=&fb_updata,
     .drawpic=&fb_draw_pic
 };
-kconsole_t *Klogger = &fb_console;
-void init_fb()
+//kconsole_t *Klogger = &fb_console;
+void qui_setup_klog()
 {
-    fb_width=conf.fb_width;
-    fb_height=conf.fb_height;
-    fb_buffer=conf.fb_vaddr;
+    fb_width=qui_renderer.width;
+    fb_height=qui_renderer.height;
+    fb_buffer=qui_renderer.pixels;
     cur_x = cur_y = 0;
     //memset(fb_buffer,0,fb_width*fb_height*4);
     // for (uint32_t i = 0; i < fb_width*fb_height; i++)
@@ -248,8 +250,8 @@ void init_fb()
     // {
     //     PANIC("Cannot Alloc MemBuffer For fb!\n(Double-Buffered Required!)\n");
     // }
-
-    Klogger=&fb_console;
+    //vfg = color_compose(255, 255, 255);
+    qui_logger=&fb_console;
     //init_printlock();
     //printf("[fb WIDTH:%d HEIGHT:%d PGNUM:%d]\n",fb_width,fb_height,fb_console.page_cnt);
     //fb_gen_puchar('h');

@@ -4,6 +4,7 @@ from PIL import Image
 
 def get_arr_img(fn, id):
     image = Image.open(fn)
+    image = image.convert('L')
     img_arr = ""
     img_arr = str("\n"
                   "#define {id}_width  {w}\n"
@@ -14,18 +15,11 @@ def get_arr_img(fn, id):
 
     for y in range(0, image.height):
         for x in range(0, (image.width + 7)//8 * 8):
-            if x == 0:
-                img_arr += str("  ")
-            if x % 8 == 0:
-                img_arr += str("0b")
-
-            bit = '0'
-            if x < image.width and image.getpixel((x, y))[0]>128:
-                bit = '1'
-            img_arr += str(bit)
-
-            if x % 8 == 7:
-                img_arr += str(",")
+            v=0
+            if x < image.width:
+                v = image.getpixel((x, y))
+            img_arr += str(v)
+            img_arr += str(",")
         img_arr += str("\n")
     img_arr += str("};")
     # 将img_arr存为文件

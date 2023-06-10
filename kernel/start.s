@@ -14,8 +14,8 @@
 // x4 -> 32 bit kernel entry point, _start location
 start:
     // set stack before our code
-//    ldr     x5, =_start
-//    mov     sp, x5
+    ldr     x5, =start
+    mov     sp, x5
 
     // clear bss
     ldr     x5, =__bss_start

@@ -1,9 +1,9 @@
 /**
- * @file fb.h
+ * @file klog.h
  * @author qiufuyu (qiufuyutony@outlook.com)
  * @brief 
  * @version 0.1
- * @date 2023-06-08
+ * @date 2023-06-10
  * 
  * THIS FILE IS PART OF DOGLIFE
  * -----------------------------
@@ -11,8 +11,8 @@
  * This project use PongoOS to boot.
  * 
  */
-#ifndef _H_FB
-#define _H_FB
+#ifndef _H_KLOG
+#define _H_KLOG
 #include <stdint.h>
 typedef struct kconsole
 {
@@ -32,7 +32,8 @@ typedef struct kconsole
     uint32_t page_cnt;
 }kconsole_t;
 
-extern kconsole_t *Klogger;
-void init_fb();
+extern kconsole_t *qui_logger;
+
+void qui_setup_klog();
 
 #endif

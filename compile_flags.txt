@@ -1,2 +1,4 @@
 -I
-./include
+./include 
+-I
+./qui/include
