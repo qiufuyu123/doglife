@@ -37,18 +37,17 @@ int color_16[16]={
  * TODO: I hope one day I will find out the way ....
  * @author: qiufuyu
  */
-#define CHAR_W 8
-#define CHAR_H 16
+#define scale_x 2
+#define scale_y 3
+uint32_t CHAR_W = 8*scale_x;
+uint32_t CHAR_H = 8*scale_y;
 #define USE_fb
-static uint32_t cur_x,cur_y;
-//uint32_t max_text_x,max_text_y;
+static uint32_t cur_x=0,cur_y=0;
 static uint32_t fb_width,fb_height;
 static uint32_t* fb_buffer;
 static uint32_t* fb_double_buff;
-static bool is_big_endian = true;
-//char is_doubled=0;
-//char buffer_state=0;
 static uint32_t vbg=0x00000000,vfg=0xffffffff;
+
 void fb_put_pixel(uint32_t x,uint32_t y,uint32_t color)
 {
     if (fb_width <= x ||  fb_height <= y)
@@ -67,66 +66,39 @@ void fb_draw_pic(char *bits,int w,int h, int xx,int yy)
         }
     }
 }
-void fb_putchar(char ch, uint32_t x, uint32_t y, uint32_t color) {
-    #ifdef USE_fb
+void fb_putchar(char ch, int x, int y, uint32_t color,uint32_t bg_color)
+{
+
     uint32_t px = 0;  // position in the charactor - an 8x8 font = 64 bits
     uint64_t bCh = FONT[ch];
-    
-    // check if it will be drawn off screen
-    //if (x+8 < 0 || x > fb_width || y+8 < 0 || y > fb_height)
-    //    return;
-    
-    // test if the charactor will be clipped (will it be fully in the screen or partially)
     if (x >= 0 && x+8 <= fb_width && y >= 0 && y+8 <= fb_height) {
         // fully in the screen - pre calculate some of the values
         // so there is less going on in the loop
-        int i = fb_width * (y - 1) + x + 8;
-        int incAmount = fb_width - 8;
+        int i = fb_width * (y - 1) + x + 8*scale_x;
+        int incAmount = fb_width - 8*scale_x;
         for (int yy = 7; yy >= 0; yy-- ) {
-            i += incAmount;
             int oldpx = px;
-            for (int xx = 7; xx >= 0; xx-- ) {
-                // test if a pixel is drawn here
-                if ((bCh >> px++) & 1) {
-                    fb_buffer[i] = vfg;
-                }else
-                {
-                    fb_buffer[i]=vbg;
+            for (int j=0; j<scale_y; j++) {
+                i += incAmount;
+                px=oldpx;
+                for (int xx = 7; xx >= 0; xx-- ) {
+                    // test if a pixel is drawn here
+                    for (int k=0; k<scale_x;k++) {
+                    if ((bCh >> px) & 1) {
+                        fb_buffer[i] = color;
+                    }else
+                    {
+                        if(bg_color&0xff000000)
+                            fb_buffer[i]=bg_color;
+                    }
+                    i++;
+                    }
+                    px++;
+
                 }
-                i++;
-            }
-            i += incAmount;
-            px=oldpx;
-            for (int xx = 7; xx >= 0; xx-- ) {
-                // test if a pixel is drawn here
-                if ((bCh >> px++) & 1) {
-                    fb_buffer[i] = vfg;
-                }else
-                {
-                    fb_buffer[i]=vbg;
-                }
-                i++;
-            }
-        } 
-    } else {
-        // partially in the screen
-        int xpos = 0;
-        int i = fb_width* (y - 1);    
-        for (int yy = 0; yy < 8; yy++ ) {
-            i += fb_width;
-            xpos = x;
-            for (int xx = 7; xx >= 0; xx-- ) {
-                // test if a pixel is drawn here
-                if ((bCh >> px++) & 1) {
-                    // test if the pixel will be off screen
-                    if (xpos > 0 && xpos < fb_width && yy+y > 0 && yy+y < fb_height)
-                        fb_buffer[ i + xpos] = vfg;
-                }else fb_buffer[i]=vbg;
-                xpos++;
             }
         } 
     }
-    #endif
 }
 void fb_scroll_up()
 {
@@ -150,7 +122,7 @@ void fb_gen_puchar(char ch)
                 cur_y-CHAR_H;
             }
             
-            fb_putchar(' ',cur_x,cur_y,0xffffffff);
+            fb_putchar(' ',cur_x,cur_y,0xffffffff,0xff000000);
             return;
         }else if(ch=='\n')
         {
@@ -164,7 +136,7 @@ void fb_gen_puchar(char ch)
             cur_x=0;
             
             return;
-        }else fb_putchar(ch,cur_x,cur_y,0xffffffff);
+        }else fb_putchar(ch,cur_x,cur_y,0xffffffff,0xff000000);
         cur_x+=CHAR_W;
         if(cur_x>=fb_width)
         {
@@ -244,7 +216,7 @@ void qui_setup_klog()
     // }
     //max_text_x=fb_width/8;
     //max_text_y=fb_height/8;
-    cur_x=cur_y=0;
+    //cur_x=5;cur_y=0;
     // fb_buffer=kmalloc_page(fb_console.page_cnt);
     // if(!fb_buffer)
     // {

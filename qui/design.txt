@@ -1,0 +1,7 @@
+# UI Framework
+## 设计思路
+绑定式ui渲染  
+架构：  
+        widget  
+ label  button1 button2
+所有子空间通过bind函数绑定自己的父组件
