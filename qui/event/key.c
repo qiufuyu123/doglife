@@ -18,6 +18,10 @@ uint8_t qui_raw_key(uint8_t id)
         return IS_DOWN((uint32_t*)qui_keys.key_up);
     else if(id == QUI_KEY_DOWN)
         return IS_DOWN((uint32_t*)qui_keys.key_down);
+    else if(id == QUI_KEY_OK)
+        return IS_DOWN((uint32_t*)qui_keys.key_ok);
+    else if(id == QUI_KEY_CANCEL)
+        return IS_DOWN((uint32_t*)qui_keys.key_cancel);
     return 0;
 }
 

@@ -27,7 +27,8 @@ qui_keymap_t kmap;
 
 uint32_t key_down = 1;
 uint32_t key_up = 1;
-
+uint32_t key_ok =1;
+uint32_t key_cancel =1;
 const int WIDTH = 800;
 const int HEIGHT = 600;
 int frameIndex = 0;
@@ -37,6 +38,8 @@ int frameIndex = 0;
 int main(int argc, char *argv[]) {
     kmap.key_down = (uint64_t)&key_down;
     kmap.key_up = (uint64_t)&key_up;
+    kmap.key_ok = &key_ok;
+    kmap.key_cancel = &key_cancel;
     qui_setup_keymap(kmap);
     pthread_t ui_task;
     SDL_Init(SDL_INIT_VIDEO);
@@ -76,6 +79,14 @@ int main(int argc, char *argv[]) {
                 {
                     key_up = 0;
                 }
+                else if(e.key.keysym.sym == SDLK_LEFT)
+                {
+                    key_cancel = 0;
+                }
+                else if(e.key.keysym.sym == SDLK_RIGHT)
+                {
+                    key_ok = 0;
+                }
             }
             else if(e.type == SDL_KEYUP){
                 if(e.key.keysym.sym == SDLK_DOWN)
@@ -84,6 +95,13 @@ int main(int argc, char *argv[]) {
                 }else if(e.key.keysym.sym == SDLK_UP)
                 {
                     key_up = 1;
+                }else if(e.key.keysym.sym == SDLK_LEFT)
+                {
+                    key_cancel = 1;
+                }
+                else if(e.key.keysym.sym == SDLK_RIGHT)
+                {
+                    key_ok = 1;
                 }
                 printf("keyup;");
             }

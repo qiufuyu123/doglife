@@ -16,12 +16,19 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 typedef struct
 {
     int x;
     int y;
 }qui_point_t;
+
+enum
+{
+    QUI_WIDGET_WIN_TITLE=0,
+    QUI_WIDGET_NO_TITLE = 1
+};
 
 typedef struct
 {
@@ -47,11 +54,15 @@ typedef struct
     qui_widget_area_t area;
     qui_point_t scroller;
     qui_rect_t bound_rect;
+
+    uint16_t flags;
     bool focus;
 }qui_widget_t;
 
 
-void qui_create_widget(qui_widget_t*ctx, void *parent, int x, int y,int w,int h,char *title);
+void qui_create_widget(qui_widget_t*ctx, uint16_t flag, int x, int y,int w,int h,char *title);
+
+void qui_widget_from_parent(qui_widget_t* ctx,qui_point_t delta);
 
 void qui_begin_widget(qui_widget_t *ctx);
 

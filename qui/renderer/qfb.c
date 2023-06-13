@@ -36,17 +36,33 @@ void* qui_top_ctx()
 
 inline int qui_cvt_x(qui_widget_t*ctx, int x)
 {
+    int ox =x;
     x+=ctx->bound_rect.x;
     if(x<ctx->bound_rect.x || x>ctx->bound_rect.x2)
         return -1;
+    if(ctx->parent)
+    {
+        while(ctx->parent)
+            ctx=ctx->parent;
+        if(x<ctx->bound_rect.x || x>ctx->bound_rect.x2)
+        return -1;
+    }
     return x;
 }
 
 inline int qui_cvt_y(qui_widget_t*ctx, int y)
 {
+    int oy=y;   
     y+=ctx->bound_rect.y;
     if(y<ctx->bound_rect.y || y>ctx->bound_rect.y2)
         return -1;
+    if(ctx->parent)
+    {
+        while(ctx->parent)
+            ctx=ctx->parent;
+        if(y<ctx->bound_rect.y || y>ctx->bound_rect.y2)
+            return -1;
+    }
     return y;
 }
 #define CVT_X(v) qui_cvt_x(ctx,(v))
@@ -106,8 +122,9 @@ qui_point_t qui_draw_text(int x1, int y1, char*text, uint32_t color,uint32_t bg_
     while (*text) {
         int nx = CVT_X(x1);
         int ny = CVT_Y(y1);
-        
-        if(nx>=0&&ny>=0)
+        int nxx = CVT_X(x1+qui_font_width());
+        int nyy = CVT_Y(y1+qui_font_height());
+        if(nx>=0&&ny>=0&&nxx>=0&&nyy>=0)
         {
             //printf("draw@%d,%d;",nx,ny);
             fb_putchar(*text, nx, ny, color,bg_color);
