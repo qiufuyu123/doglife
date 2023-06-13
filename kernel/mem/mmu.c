@@ -18,6 +18,7 @@
  #include <stdbool.h>
  #include <string.h>
 #include <stdint.h>
+#include <threads.h>
 extern pboot_config_t conf;
  uint64_t tt_bits, tg0, tg1, t0sz, t1sz;
  char __start,__end;
@@ -206,8 +207,9 @@ void map_range(uint64_t va, uint64_t pa, uint64_t size, uint64_t sh, uint64_t at
    //  memcpy(ttbr1,conf.ttbr1,pgsz);
    //  //set_vbar_el1((uint64_t)&exception_vector);
    //  
-   map_range(0x400000000,conf.loaded_phy_addr+0x800000, 0x800000, 3, 1,true);
+   //map_range(0x600000000,0x600000000, (conf.fb_height*conf.fb_height*4+0x3fff)&~0x3fff, 2, 4,true);
    //_enable_mmu_el1((uint64_t)conf.ttbr0, 0x13A402A00 | (tg0 << 14) | (tg1 << 30) | (t1sz << 16) | t0sz, 0x04ff00, (uint64_t)conf.ttbr1);
     //kernel_vm_space.ttbr0 = (uint64_t)ttbr0;
     //kernel_vm_space.ttbr1 = (uint64_t)ttbr1;
+    //memset(0x600000000, 0, conf.fb_height*conf.fb_width*4);
  }

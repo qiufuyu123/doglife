@@ -26,14 +26,17 @@
 qui_keymap_t kmap;
 
 uint32_t key_down = 1;
-
+uint32_t key_up = 1;
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
 int frameIndex = 0;
 
+
+
 int main(int argc, char *argv[]) {
     kmap.key_down = (uint64_t)&key_down;
+    kmap.key_up = (uint64_t)&key_up;
     qui_setup_keymap(kmap);
     pthread_t ui_task;
     SDL_Init(SDL_INIT_VIDEO);
@@ -44,7 +47,7 @@ int main(int argc, char *argv[]) {
     uint32_t* pixels = malloc(WIDTH * HEIGHT*sizeof(uint32_t)); // width x height x SDL_PIXELFORMAT_RGBA8888
     memset(pixels, 0xff, 4 * WIDTH * HEIGHT);
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(pixels, WIDTH, HEIGHT, 32, 4*WIDTH, SDL_PIXELFORMAT_RGBA32);
-    SDL_SetSurfaceRLE(surface, SDL_RLEACCEL);
+    //SDL_SetSurfaceRLE(surface, SDL_RLEACCEL);
     //SDL_Renderer* renderer = SDL_CreateSoftwareRenderer(surface);
     //SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
     // Rect to draw on the screen
@@ -67,12 +70,22 @@ int main(int argc, char *argv[]) {
             {
                 if(e.key.keysym.sym == SDLK_DOWN)
                 {
-                    printf("key down!");
+                    //printf("key down!");
                     key_down = 0;
+                }else if(e.key.keysym.sym == SDLK_UP)
+                {
+                    key_up = 0;
                 }
             }
             else if(e.type == SDL_KEYUP){
-                key_down = 1;
+                if(e.key.keysym.sym == SDLK_DOWN)
+                {
+                    key_down = 0xff;
+                }else if(e.key.keysym.sym == SDLK_UP)
+                {
+                    key_up = 1;
+                }
+                printf("keyup;");
             }
         }
         //SDL_MUSTLOCK(S)
@@ -83,8 +96,10 @@ int main(int argc, char *argv[]) {
         // SDL_RenderCopy(renderer, tex, NULL, &rt);
         // SDL_DestroyTexture(tex);
         // SDL_RenderPresent(renderer);
+        
         SDL_BlitSurface(surface,&rt,SDL_GetWindowSurface(win),&rt);
         SDL_UpdateWindowSurface(win);
+        //SDL_Delay(100);
         //SDL_RenderCopy()
     }
 

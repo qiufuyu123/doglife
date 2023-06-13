@@ -27,3 +27,12 @@ void memset(char *dest, char c, size_t len)
         dest[i] = c;
     }
 }
+
+size_t strlen(char *str)
+{
+    size_t r=0;
+    while (*str++) {
+        r++;
+    }
+    return r;;
+}

@@ -25,6 +25,11 @@ typedef struct
 
 typedef struct
 {
+    int x,y,x2,y2;
+}qui_rect_t;
+
+typedef struct
+{
     int x,y,w,h,now;
     bool is_vert;
 
@@ -40,7 +45,8 @@ typedef struct
     uint32_t title_len;
 
     qui_widget_area_t area;
-    int hori_scroll,vert_scroll;
+    qui_point_t scroller;
+    qui_rect_t bound_rect;
     bool focus;
 }qui_widget_t;
 

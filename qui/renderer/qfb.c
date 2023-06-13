@@ -1,6 +1,7 @@
 #include "qfb.h"
 #include "ui/widget.h"
 #include <stdint.h>
+#include <stdio.h>
 
 void* qui_ctx_stack[QUI_STACK_MAX];
 uint32_t qui_ctx_stack_top=0;
@@ -35,16 +36,16 @@ void* qui_top_ctx()
 
 inline int qui_cvt_x(qui_widget_t*ctx, int x)
 {
-    x+=ctx->x;
-    if(x<ctx->x || x>ctx->x+ctx->w)
+    x+=ctx->bound_rect.x;
+    if(x<ctx->bound_rect.x || x>ctx->bound_rect.x2)
         return -1;
     return x;
 }
 
 inline int qui_cvt_y(qui_widget_t*ctx, int y)
 {
-    y+=ctx->y;
-    if(y<ctx->y || y>ctx->y+ctx->h)
+    y+=ctx->bound_rect.y;
+    if(y<ctx->bound_rect.y || y>ctx->bound_rect.y2)
         return -1;
     return y;
 }
@@ -103,7 +104,14 @@ qui_point_t qui_draw_text(int x1, int y1, char*text, uint32_t color,uint32_t bg_
     qui_point_t p;
     p.y = CHAR_H;
     while (*text) {
-        fb_putchar(*text, CVT_X(x1), CVT_Y(y1), color,bg_color);
+        int nx = CVT_X(x1);
+        int ny = CVT_Y(y1);
+        
+        if(nx>=0&&ny>=0)
+        {
+            //printf("draw@%d,%d;",nx,ny);
+            fb_putchar(*text, nx, ny, color,bg_color);
+        }
         text++;
         x1 += qui_font_width();
         p.x += CHAR_W;

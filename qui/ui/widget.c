@@ -1,9 +1,12 @@
 #include "ui/widget.h"
+#include "event/key.h"
 #include "qfb.h"
 #include "config.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "ui/label.h"
 void qui_create_widget(qui_widget_t*ctx, void *parent, int x, int y,int w,int h,char* title)
 {
     //qui_widget_t *o = qui_alloc(sizeof(qui_widget_t));
@@ -17,35 +20,74 @@ void qui_create_widget(qui_widget_t*ctx, void *parent, int x, int y,int w,int h,
     ctx->title = title;
     if(ctx->title)
         ctx->title_len = strlen(title);
+    ctx->scroller.x = ctx->scroller.y = 0;
+
     //return o;
 }
 
 void qui_begin_widget(qui_widget_t *ctx)
 {
     qui_push_ctx(ctx);
-    qui_fill_rect(0, 0, ctx->w, ctx->h, 0x1c1c1c);
+    ctx->bound_rect.x = ctx->x;
+    ctx->bound_rect.y = ctx->y;
+    ctx->bound_rect.x2 = ctx->x + ctx->w;
+    ctx->bound_rect.y2 = ctx->y + ctx->h;
+    qui_fill_rect(0, 0, ctx->w, ctx->h, 0xff1c1c1c);
     qui_fill_rect(5, 5, ctx->w-10, ctx->h-10, 0xff9c9c9c);
+
     if(ctx->title)
     {
-        qui_fill_rect(0, 0, ctx->w, qui_font_height()+10, 0x1c1c1c);
-        qui_draw_text(20, 5, ctx->title,0xffffffff,0);
+        qui_fill_rect(0, 0, ctx->w, qui_font_height()+10, 0xff1c1c1c);
+        qui_draw_text(20, 5, ctx->title,0xffffffff,0xff1c1c1c);
         // ctx->y += qui_font_height()+10+3;
         // ctx->x += 3;
+        ctx->bound_rect.y += qui_font_height()+10;
+        ctx->bound_rect.x+=5;
     }
+    //scroller:
+    
+    if(qui_getkey(QUI_KEY_DOWN))
+    {
+        ctx->scroller.y-=qui_font_height();
+        //qui_draw_text(20, 5, "press",0xffffffff,0xff1c1c1c);
+    }else if(qui_getkey(QUI_KEY_UP))
+    {
+        if(ctx->scroller.y<0)
+            ctx->scroller.y+=qui_font_height();
+    }
+    while (qui_getkey(QUI_KEY_DOWN)||qui_getkey(QUI_KEY_UP)) {
+    
+    }
+
+    
 }
 
 void qui_end_widget()
 {
+    qui_widget_t *ctx =qui_top_ctx();
+    int hh =ctx->bound_rect.y2-ctx->bound_rect.y;
+    qui_fill_rect(ctx->w-30,0, 23,hh, 0xff505050);
+    int unit = hh*qui_font_height()/ctx->w;
+    qui_fill_rect(ctx->w-30,-unit*ctx->scroller.y/qui_font_height(), 23,unit, 0xffe0e0e0);
     qui_pop_ctx();
+}
+
+qui_point_t qui_point_comb(qui_point_t o, qui_point_t p)
+{
+    o.x += p.x;
+    o.y += p.y;
+    return o;
 }
 
 void qui_begin_vertical( int x, int y)
 {
     qui_widget_t *ctx = qui_top_ctx();
-    ctx->area.x = x + 3;
-    ctx->area.y = y + qui_font_height()+10;
+    ctx->area.x = x + 3 + ctx->scroller.x;
+    ctx->area.y = y + qui_font_height()+10 + ctx->scroller.y;
     ctx->area.is_vert = true; 
     ctx->area.now = ctx->area.y;
+    //printf("area@%d,%d;",ctx->area.x,ctx->area.y);
+    
 }
 
 static bool qui_inarea(qui_widget_area_t area,qui_point_t xy,qui_point_t wh)
@@ -63,13 +105,6 @@ qui_point_t qui_widget_space(qui_widget_t *ctx)
         r = (qui_point_t){ctx->area.now, ctx->area.y};
     }
     return r;;
-}
-
-qui_point_t qui_point_comb(qui_point_t o, qui_point_t p)
-{
-    o.x += p.x;
-    o.y += p.y;
-    return o;
 }
 
 void qui_widget_separate(int delta)

@@ -1,7 +1,7 @@
 BUILD_DIR := ./build/
 SRC_DIR = ./
 INCLUDE_DIR = ../qui/include
-CFLAGS := -std=gnu99 -O1 -static
+CFLAGS := -std=gnu99 -O0 -static
 SRCS = $(shell find $(SRC_DIR) -name '*.cpp' -or -name '*.c' -or -name '*.s')
 OBJS = $(SRCS:%=$(BUILD_DIR)/%.o)
 
